@@ -11,7 +11,7 @@ import { SuggestionCard } from "./SuggestionCard.tsx";
 
 export const SuggestionContainer = () => {
   return (
-    <Card bg={"#fff"} h={"90%"}>
+    <Card bg={"#fff"} h={"100%"}>
       <Text>Good-to-know</Text>
       <Card bg={"#fff"} shadow={"0 4px 16px rgba(199,199,199, 0.5)"} h={120}>
         <Flex gap={"md"} h={"100%"}>

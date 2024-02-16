@@ -15,7 +15,7 @@ export const AppModal: FC<AppModalProps> = ({
   modalContent,
 }) => {
   return (
-    <Modal bg={"#fff"} opened={opened} onClose={close} title={title} centered>
+    <Modal opened={opened} onClose={close} title={title} centered size={500}>
       {modalContent}
     </Modal>
   );

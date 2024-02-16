@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { AppModal } from "../modal/Modal.tsx";
 import { LineChart } from "@mantine/charts";
+import { DeviceCard } from "../DeviceCard/DeviceCard.tsx";
 
 export const Scheduler = () => {
   const date = "22.01.2024";
@@ -19,8 +20,10 @@ export const Scheduler = () => {
   const [loading, setLoading] = useState(true);
   const [opened, setOpened] = useState(false);
 
+  const [selected, setSelect] = useState<string | null>(null);
+
   useEffect(() => {
-    setTimeout(() => setLoading(false), 2000);
+    setTimeout(() => setLoading(false), 1000);
   }, []);
 
   const renderSlotList = () =>
@@ -29,11 +32,12 @@ export const Scheduler = () => {
     ) : (
       <ScrollArea h={"calc(100vh - 2rem)"} offsetScrollbars>
         <Stack gap={"md"}>
-          <TimeSlot time={"12:00"} />
-          <TimeSlot time={"12:00"} />
-          <TimeSlot time={"12:00"} />
-          <TimeSlot time={"12:00"} />
+          <TimeSlot time={"12:00"} onSelect={setSelect} />
+          <TimeSlot time={"13:00"} onSelect={setSelect} />
+          <TimeSlot time={"14:00"} onSelect={setSelect} />
+          <TimeSlot time={"15:00"} onSelect={setSelect} />
         </Stack>
+        {selected && <DeviceCard onClose={() => setSelect(null)} />}
       </ScrollArea>
     );
   return (
@@ -83,7 +87,9 @@ export const Scheduler = () => {
             </Button>
           </Stack>
         </GridCol>
-        <GridCol span={10}>{renderSlotList()}</GridCol>
+        <GridCol span={10} pos={"relative"}>
+          {renderSlotList()}
+        </GridCol>
       </Grid>
     </>
   );
