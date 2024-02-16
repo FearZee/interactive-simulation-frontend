@@ -1,11 +1,28 @@
-import { Card, rem } from "@mantine/core";
+import { Card, em, rem } from "@mantine/core";
 import { AreaChart } from "@mantine/charts";
+import { useMediaQuery } from "@mantine/hooks";
+import { useLayoutEffect, useState } from "react";
 
 export const UsageChart = () => {
+  const isLargeHeight = useMediaQuery(`(min-height: ${em(1000)})`);
+  const isSmallHeight = useMediaQuery(`(max-height: ${em(920)})`);
+  const [height, setHeight] = useState(window.innerHeight);
+
+  useLayoutEffect(() => {
+    addEventListener("resize", () => {
+      setHeight(window.innerHeight);
+    });
+
+    return () => {
+      removeEventListener("resize", () => {});
+    };
+  }, []);
+
+  const heightFactor = isLargeHeight ? 1.4 : isSmallHeight ? 1 : 1.2;
   return (
     <Card bg={"#fff"}>
       <AreaChart
-        h={rem(350)}
+        h={rem(Math.max(300, (height * heightFactor) / 3 - 16))}
         data={data}
         dataKey="hour"
         series={[

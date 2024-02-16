@@ -6,11 +6,14 @@ import {
 import { Simulation } from "./simulation.types.ts";
 
 export const useSimulationQuery = (
-  simulationReference: Simulation["reference"],
+  simulationReference: Simulation["reference"] | undefined,
 ) =>
   useQuery({
     queryKey: ["simulation", simulationReference],
-    queryFn: () => fetchSimulationByReference(simulationReference),
+    queryFn: () => {
+      if (!simulationReference) return;
+      return fetchSimulationByReference(simulationReference);
+    },
   });
 
 export const useCreateSimulationMutation = () => {
