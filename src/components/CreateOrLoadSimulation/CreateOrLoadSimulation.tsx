@@ -1,7 +1,13 @@
 import { Button, Space, TextInput } from "@mantine/core";
+import { createSimulation } from "../../data/simulation/simulation.api.ts";
+import { useNavigate } from "react-router-dom";
 
 export const CreateOrLoadSimulation = () => {
-  const handleCreateSimulation = () => {};
+  const navigate = useNavigate();
+  const handleCreateSimulation = async () => {
+    const simulation = await createSimulation();
+    navigate(`/${simulation.reference}`);
+  };
 
   return (
     <>

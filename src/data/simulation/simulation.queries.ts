@@ -14,17 +14,14 @@ export const useSimulationQuery = (
   });
 
 export const useCreateSimulationMutation = () => {
-  // const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
-      await createSimulation();
-    },
-    onMutate: (variables) => {
-      console.log(variables);
-    },
+    mutationFn: () => createSimulation(),
     onSettled: (data) => {
-      console.log(data);
+      queryClient.invalidateQueries({ queryKey: ["simulation"] });
+      queryClient.setQueryData(["simulation", data!.reference], data);
+      return data;
     },
   });
 };
