@@ -5,4 +5,5 @@ export interface Simulation {
   battery_reference: string;
   photovoltaic_reference: string;
   weather_reference: string;
+  schedule_reference: string;
 }

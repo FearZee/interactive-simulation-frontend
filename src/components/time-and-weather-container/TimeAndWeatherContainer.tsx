@@ -1,57 +1,77 @@
-import { Flex, Stack, Text } from "@mantine/core";
+import { Flex, LoadingOverlay, Stack, Text } from "@mantine/core";
 import { IconCloud, IconCloudRain, IconSun } from "@tabler/icons-react";
 import { FC } from "react";
+import { useWeatherQuery } from "../../data/weather/weather.queries.ts";
+import { randomId } from "@mantine/hooks";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 
-const day = "22.01.2024";
+dayjs.extend(customParseFormat);
+// const day = "22.01.2024";/
 
-const weather = [
-    { weatherType: "cloud", temp: 14, hour: "00:00" },
-    { weatherType: "cloud", temp: 6, hour: "02:00" },
-    { weatherType: "sun", temp: 18, hour: "04:00" },
-    { weatherType: "sun", temp: 11, hour: "06:00" },
-    { weatherType: "sun", temp: 9, hour: "08:00" },
-    { weatherType: "cloud", temp: 12, hour: "10:00" },
-    { weatherType: "rain", temp: 15, hour: "12:00" },
-    { weatherType: "rain", temp: 19, hour: "14:00" },
-    { weatherType: "rain", temp: 17, hour: "16:00" },
-    { weatherType: "cloud", temp: 8, hour: "18:00" },
-    { weatherType: "cloud", temp: 2, hour: "20:00" },
-    { weatherType: "cloud", temp: 4, hour: "22:00" },
-];
-export const TimeAndWeatherInfo = () => {
-    return (
-        <Stack align={"flex-start"}>
-            <Text>{day}</Text>
-            <Flex justify={'space-evenly'} w={'100%'}>
-                {weather.map((item, index) => (
-                    <WeatherItem
-                        key={index}
-                        weatherType={item.weatherType}
-                        temp={item.temp}
-                        hour={item.hour}
-                    />
-                ))}
-            </Flex>
-        </Stack>
-    );
+const dayOfYearToDate = (dayOfYear: number) => {
+  const currentDate = new Date(new Date().getFullYear(), 0); // January 1st of the current year
+  const targetDate = new Date(currentDate.setDate(dayOfYear));
+
+  // Format the date as a string
+  const dateString = targetDate.toDateString().split("T")[0];
+
+  return dayjs(dateString).format("DD.MM.YYYY");
+};
+
+interface TimeAndWeatherInfoProps {
+  weatherReference: string;
+  day: number;
+}
+
+export const TimeAndWeatherInfo: FC<TimeAndWeatherInfoProps> = ({
+  weatherReference,
+  day,
+}) => {
+  const { data, isLoading } = useWeatherQuery(weatherReference);
+
+  if (isLoading || !data) {
+    return <LoadingOverlay />;
+  }
+
+  const t = dayOfYearToDate(day);
+
+  return (
+    <Stack align={"flex-start"}>
+      <Text>{t}</Text>
+      <Flex justify={"space-evenly"} w={"100%"}>
+        {Object.keys(data.weather).map((key, index) =>
+          index % 2 === 0 ? (
+            <WeatherItem
+              key={randomId()}
+              weatherType={data.weather[key].sun - data.weather[key].cloud}
+              temp={data.weather[key].temperature}
+              hour={key}
+            />
+          ) : null,
+        )}
+      </Flex>
+    </Stack>
+  );
 };
 
 interface WeatherItemProps {
-    weatherType: string;
-    temp: number;
-    hour: string;
+  weatherType: number;
+  temp: number;
+  hour: string;
 }
 
 const WeatherItem: FC<WeatherItemProps> = ({ weatherType, temp, hour }) => {
-    return (
-        <Stack gap={"xs"}>
-            <Text>
-                {(weatherType == "sun" && <IconSun />) ||
-                    (weatherType == "rain" && <IconCloudRain />) ||
-                    (weatherType == "cloud" && <IconCloud />)}
-            </Text>
-            <Text>{temp}°C</Text>
-            <Text>{hour}</Text>
-        </Stack>
-    );
+  const formattedHour = hour.padStart(2, "0");
+  const timeString = `${formattedHour}:00`;
+  return (
+    <Stack gap={"xs"}>
+      <Text>
+        {(weatherType > 0 && <IconSun />) ||
+          (weatherType < -0.8 && <IconCloudRain />) || <IconCloud />}
+      </Text>
+      <Text>{temp.toFixed(0)}°C</Text>
+      <Text>{timeString}</Text>
+    </Stack>
+  );
 };

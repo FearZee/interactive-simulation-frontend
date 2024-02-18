@@ -2,10 +2,13 @@ import { TimeAndWeatherInfo } from "../time-and-weather-container/TimeAndWeather
 import { UsageChart } from "../usage-card/UsageCard.tsx";
 import { InfoContainer } from "../info-container/InfoContainer.tsx";
 import { Button, Grid, LoadingOverlay, Stack } from "@mantine/core";
-import { SuggestionContainer } from "../SuggestionContainer/SuggestionContainer.tsx";
+import { SuggestionContainer } from "../suggestionContainer/SuggestionContainer.tsx";
 import { useNavigate } from "react-router-dom";
 import { FC } from "react";
 import { useSimulationQuery } from "../../data/simulation/simulation.queries.ts";
+import { useScheduleQuery } from "../../data/schedule/schedule.queries.ts";
+import { useMarketPriceQueries } from "../../data/market-price/marketPrice.queries.ts";
+import { usePhotovoltaicQuery } from "../../data/photovoltaic/photovoltaic.queries.ts";
 
 interface DashboardProps {
   simulationReference?: string;
@@ -14,23 +17,50 @@ interface DashboardProps {
 export const Dashboard: FC<DashboardProps> = ({ simulationReference }) => {
   const { data: simulation, isLoading } =
     useSimulationQuery(simulationReference);
+  const { data: schedule, isLoading: isScheduleLoading } = useScheduleQuery(
+    simulation?.schedule_reference,
+  );
+  const { data: marketPrice } = useMarketPriceQueries(
+    simulation?.energy_market_reference,
+  );
+
+  const { data: photovoltaic } = usePhotovoltaicQuery(
+    simulation?.day,
+    simulation?.photovoltaic_reference,
+  );
+
   const navigate = useNavigate();
 
-  if (isLoading) {
+  if (
+    isLoading ||
+    isScheduleLoading ||
+    !schedule ||
+    !simulation ||
+    !marketPrice ||
+    !photovoltaic
+  ) {
     return <LoadingOverlay />;
   }
+
+  const powerConsumption = Object.values(schedule.complete[12]).reduce(
+    (acc, val) => acc + val.usage,
+    0,
+  );
 
   return (
     <Grid gutter="md" mt={".5rem"} grow h={"100%"}>
       <Grid.Col span={8} h={"100%"}>
         <Stack justify={"space-between"} h={"100%"}>
-          <TimeAndWeatherInfo />
-          <UsageChart />
+          <TimeAndWeatherInfo
+            weatherReference={simulation.weather_reference}
+            day={simulation.day}
+          />
+          <UsageChart scheduleComplete={schedule?.complete} />
           <InfoContainer
             time={"12:00"}
-            electricityPrice={5.05}
-            powerConsumption={1.2}
-            photovoltaicOutput={3.6}
+            electricityPrice={marketPrice?.price[12]}
+            powerConsumption={powerConsumption}
+            photovoltaicOutput={photovoltaic.energy[12]}
           />
         </Stack>
       </Grid.Col>

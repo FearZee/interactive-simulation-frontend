@@ -22,26 +22,28 @@ export const InfoContainer: FC<InfoContainerProps> = ({
         <CustomCard>
           <Text>Power consumption</Text>
           <Text fz={"xl"} w={"100%"} ta={"center"}>
-            {powerConsumption} <span style={{ fontSize: "1rem" }}>kWh</span>
+            {powerConsumption.toFixed(2)}{" "}
+            <span style={{ fontSize: "1rem" }}>kWh</span>
           </Text>
         </CustomCard>
         <CustomCard>
           <Text>Photovoltaic output</Text>
           <Text fz={"xl"} w={"100%"} ta={"center"}>
-            {photovoltaicOutput} <span style={{ fontSize: "1rem" }}>kWh</span>
+            {photovoltaicOutput.toFixed(2)}{" "}
+            <span style={{ fontSize: "1rem" }}>kWh</span>
           </Text>
         </CustomCard>
         <CustomCard>
           <Text>Electricity price</Text>
           <Text fz={"xl"} w={"100%"} ta={"center"}>
-            {electricityPrice}{" "}
+            {electricityPrice.toFixed(2)}
             <span style={{ fontSize: "1rem" }}>Cent/kWh</span>
           </Text>
         </CustomCard>
         <CustomCard>
           <Text>Power consumption</Text>
           <Text fz={"xl"} w={"100%"} ta={"center"}>
-            {powerConsumption}
+            {powerConsumption.toFixed(2)}
           </Text>
         </CustomCard>
       </SimpleGrid>

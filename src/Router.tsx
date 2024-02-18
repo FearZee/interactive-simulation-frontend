@@ -3,7 +3,7 @@ import {
   createRoutesFromElements,
   Route,
 } from "react-router-dom";
-import { SimulationShell } from "./components/SimulationShell/SimulationShell.tsx";
+import { SimulationShell } from "./components/simulationShell/SimulationShell.tsx";
 import { CreateOrLoadSimulation } from "./components/CreateOrLoadSimulation/CreateOrLoadSimulation.tsx";
 import { SimulationRouter } from "./SimulationRouter.tsx";
 

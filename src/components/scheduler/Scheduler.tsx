@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { AppModal } from "../modal/Modal.tsx";
 import { LineChart } from "@mantine/charts";
-import { DeviceCard } from "../DeviceCard/DeviceCard.tsx";
+import { DeviceCard } from "../deviceCard/DeviceCard.tsx";
 
 export const Scheduler = () => {
   const date = "22.01.2024";
