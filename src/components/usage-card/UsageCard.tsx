@@ -54,7 +54,7 @@ export const UsageChart: FC<UsageChartProps> = ({ scheduleComplete }) => {
         dataKey="hour"
         tooltipAnimationDuration={200}
         series={[
-          { name: "Goal", color: "lime-green.7" },
+          { name: "Goal", color: "limeGreen.7" },
           { name: "Your", color: "blue.6" },
         ]}
         curveType="linear"

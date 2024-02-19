@@ -4,22 +4,38 @@ import { FC, useState } from "react";
 import { BaseDevice } from "../../data/schedule/schedule.types.ts";
 import { useAtom } from "jotai";
 import { userScheduleAtom } from "../../state/userSchedule.ts";
+import { v4 as uuidv4 } from "uuid";
 
 interface AddDeviceModalProps {
   timeSlot: number;
   opened: boolean;
   onClose: () => void;
+  leftEnergy: number;
 }
+
+const leftEnergyDevices = [
+  {
+    reference: "b103c446-078a-4561-b3c8-85865b6b7f50",
+    name: "Battery",
+    capacity: 10.0,
+    current: 4.0,
+  },
+  {
+    reference: "30c45c30-a16c-4f53-afed-fce423f5df4d",
+    name: "Energy market",
+  },
+];
 
 export const AddDeviceModal: FC<AddDeviceModalProps> = ({
   timeSlot,
   opened,
   onClose,
+  leftEnergy,
 }) => {
   const { data: baseDevices, isLoading } = useControlledDevicesQuery();
-  const [selectedDevice, setSelected] = useState<BaseDevice | undefined>(
-    undefined,
-  );
+  const [selectedDevice, setSelected] = useState<
+    BaseDevice | { reference: string; [key: string]: any } | undefined
+  >(undefined);
   const [duration, setDuration] = useState<number | null>(null);
 
   const [, setUserSchedule] = useAtom(userScheduleAtom);
@@ -37,7 +53,8 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
   );
 
   const handleSelect = (value: string | null) => {
-    setSelected(baseDevices.find((device) => device.reference === value));
+    const tempDevices = [...baseDevices, ...leftEnergyDevices];
+    setSelected(tempDevices.find((device) => device.reference === value));
   };
 
   const timeOptions = Array.from({ length: 12 }, (_, i) =>
@@ -45,14 +62,15 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
   );
 
   const handleAddDevice = () => {
-    if (selectedDevice && duration) {
+    if (selectedDevice) {
       setUserSchedule((schedule) => {
         const found = schedule?.find((item) => item.time_slot === timeSlot);
         if (found) {
           found.device.push({
+            reference: uuidv4(),
             base_device_reference: selectedDevice.reference,
-            duration: duration,
-            wattage: selectedDevice.wattage,
+            duration: duration || 60,
+            wattage: selectedDevice.wattage || leftEnergy * 1000,
             name: selectedDevice.name,
           });
           return [...schedule!, found];
@@ -63,9 +81,10 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
             time_slot: timeSlot,
             device: [
               {
+                reference: uuidv4(),
                 base_device_reference: selectedDevice.reference,
-                duration: duration,
-                wattage: selectedDevice.wattage,
+                duration: duration || 60,
+                wattage: selectedDevice.wattage || leftEnergy * 1000,
                 name: selectedDevice.name,
               },
             ],
@@ -77,28 +96,54 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
     onClose();
   };
 
+  const renderModalBody = () => {
+    if (!selectedDevice) return <p>Select a device</p>;
+
+    if (
+      leftEnergyDevices.find(
+        ({ reference }) => reference === selectedDevice.reference,
+      )
+    ) {
+      return <p>Device is not available</p>;
+    }
+
+    return (
+      <>
+        <p>{selectedDevice?.wattage} kWh</p>
+        <Select
+          label={"Duration"}
+          step={5}
+          data={timeOptions}
+          value={duration?.toString()}
+          onChange={(value) => setDuration(Number(value))}
+        />
+        <p>
+          {selectedDevice &&
+            duration &&
+            ((selectedDevice?.wattage / 1000) * (duration / 60)).toFixed(
+              3,
+            )}{" "}
+          kWh
+        </p>
+      </>
+    );
+  };
+
   return (
     <Modal opened={opened} onClose={onClose} title="Add Device" centered>
       <Select
         label={"Device"}
-        data={options}
+        data={[
+          ...options,
+          ...leftEnergyDevices.map((device) => ({
+            label: device.name,
+            value: device.reference,
+          })),
+        ]}
         value={selectedDevice?.reference}
         onChange={(value) => handleSelect(value)}
       />
-      <p>{selectedDevice?.wattage} kWh</p>
-      <Select
-        label={"Duration"}
-        step={5}
-        data={timeOptions}
-        value={duration?.toString()}
-        onChange={(value) => setDuration(Number(value))}
-      />
-      <p>
-        {selectedDevice &&
-          duration &&
-          ((selectedDevice?.wattage / 1000) * (duration / 60)).toFixed(3)}{" "}
-        kWh
-      </p>
+      {renderModalBody()}
       <Button autoContrast onClick={handleAddDevice}>
         Add Device
       </Button>

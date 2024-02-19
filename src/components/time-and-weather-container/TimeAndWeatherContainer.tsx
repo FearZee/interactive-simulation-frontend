@@ -29,12 +29,11 @@ export const TimeAndWeatherInfo: FC<TimeAndWeatherInfoProps> = ({
   day,
 }) => {
   const { data, isLoading } = useWeatherQuery(weatherReference);
+  const t = dayOfYearToDate(day);
 
   if (isLoading || !data) {
     return <LoadingOverlay />;
   }
-
-  const t = dayOfYearToDate(day);
 
   return (
     <Stack align={"flex-start"}>

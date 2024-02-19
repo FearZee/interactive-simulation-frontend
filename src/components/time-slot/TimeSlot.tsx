@@ -1,17 +1,24 @@
 import { Button, Card, Flex, Space, Stack, Text } from "@mantine/core";
 import { FC, useState } from "react";
-import { IconPlus } from "@tabler/icons-react";
+import { IconMinus, IconPlus } from "@tabler/icons-react";
 import { ScheduleDevice } from "../../data/schedule/schedule.types.ts";
 import { AddDeviceModal } from "../add-device-modal/AddDeviceModal.tsx";
-import { useUserSchedule } from "../../state/userSchedule.ts";
+import {
+  readUserScheduleAtom,
+  userScheduleAtom,
+  UserScheduleDevice,
+  useUserSchedule,
+} from "../../state/userSchedule.ts";
 import { randomId } from "@mantine/hooks";
+import { useAtom } from "jotai";
 
 interface TimeSlotProps {
   time: string;
-  onSelect: (selected: string) => void;
+  onSelect: (selected: UserScheduleDevice) => void;
   devices: ScheduleDevice[];
   pvOutput: number;
   marketPrice: number;
+  batteryStorage: number;
 }
 
 export const TimeSlot: FC<TimeSlotProps> = ({
@@ -20,9 +27,12 @@ export const TimeSlot: FC<TimeSlotProps> = ({
   devices,
   pvOutput,
   marketPrice,
+  batteryStorage,
 }) => {
   const [modalOpened, setModalOpened] = useState(false);
   const userDevices = useUserSchedule(Number(time));
+  const [, setUserSchedule] = useAtom(userScheduleAtom);
+
   const { output, energyPrice } = {
     output: pvOutput,
     energyPrice: marketPrice,
@@ -44,12 +54,26 @@ export const TimeSlot: FC<TimeSlotProps> = ({
   const formattedHour = time.padStart(2, "0");
   const timeString = `${formattedHour}:00`;
 
+  const handleRemove = (deviceReference: string) => {
+    setUserSchedule((schedule) => {
+      const found = schedule?.find((item) => item.time_slot === Number(time));
+      if (found) {
+        found.device = found.device.filter(
+          (item) => item.reference !== deviceReference,
+        );
+        return [...schedule!, found];
+      }
+      return schedule;
+    });
+  };
+
   return (
     <>
       <AddDeviceModal
         timeSlot={Number(time)}
         opened={modalOpened}
         onClose={() => setModalOpened(false)}
+        leftEnergy={leftEnergy}
       />
       <Card bg={"#fff"}>
         <Text>{timeString}</Text>
@@ -58,7 +82,7 @@ export const TimeSlot: FC<TimeSlotProps> = ({
           <Stack gap={"sm"} w={100}>
             <Text fz={"xs"}>
               PV Outage: <br />
-              {output.toFixed(2)} kWh
+              {output.toFixed(3)} kWh
             </Text>
             <Text fz={"xs"}>
               Energy price: <br />
@@ -70,36 +94,34 @@ export const TimeSlot: FC<TimeSlotProps> = ({
             </Text>
             <Text fz={"xs"}>
               Battery: <br />
-              {4.0} kWh
+              {batteryStorage.toFixed(3)} kWh
             </Text>
             <Text fz={"xs"}>
               Left energy: <br />
-              {leftEnergy.toFixed(2)} kWh
-            </Text>
-            <Text fz={"xs"}>
-              Battery Storage: <br />
-              {leftEnergy.toFixed(2)} kWh
+              {leftEnergy.toFixed(3)} kWh
             </Text>
           </Stack>
           <Flex gap={"md"} wrap={"wrap"} w={"100%"}>
             {devices.map((device) => (
               <DeviceCard
-                key={device.reference}
+                key={randomId()}
+                // key={device.reference}
                 deviceName={device.base_device.name}
                 duration={device.duration}
                 usage={
                   (device.base_device.wattage / 1000) * (device.duration / 60)
                 }
-                onClick={device.base_device.controllable ? onSelect : undefined}
               />
             ))}
             {userDevices?.device.map((device) => (
               <DeviceCard
                 key={randomId()}
+                reference={device.reference}
                 deviceName={device.name}
                 duration={device.duration}
                 usage={(device.wattage / 1000) * (device.duration / 60)}
                 onClick={onSelect}
+                onRemove={() => handleRemove(device.reference)}
               />
             ))}
             <Button
@@ -126,7 +148,9 @@ interface DeviceCardProps {
   deviceName: string;
   duration: number;
   usage: number;
-  onClick?: (deviceName: string) => void;
+  onClick?: (device: UserScheduleDevice) => void;
+  onRemove?: () => void;
+  reference?: string;
 }
 
 const DeviceCard: FC<DeviceCardProps> = ({
@@ -134,10 +158,39 @@ const DeviceCard: FC<DeviceCardProps> = ({
   duration,
   usage,
   onClick,
+  onRemove,
+  reference,
 }) => {
+  const [userDevices] = useAtom(readUserScheduleAtom);
+
+  const thisDevice = userDevices?.map((device) =>
+    device.device.find((item) => item.reference === reference),
+  )[0];
+
+  const handleRemoveClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onRemove?.();
+  };
+
   return (
-    <Card h={150} w={300} onClick={() => onClick?.(deviceName)}>
-      <Text>{deviceName}</Text>
+    <Card
+      h={150}
+      w={300}
+      onClick={() => onClick?.(thisDevice!)}
+      bg={onClick && "magenta.2"}
+    >
+      <Flex justify={"space-between"} align={"center"}>
+        <Text>{deviceName}</Text>
+        {onRemove && (
+          <Button
+            variant={"transparent"}
+            c={"black"}
+            onClick={handleRemoveClick}
+          >
+            <IconMinus />
+          </Button>
+        )}
+      </Flex>
       <Space h={"sm"} />
       <Text>In use for: {duration} minutes</Text>
       <Text>Usage: {usage.toFixed(3)} kWh</Text>

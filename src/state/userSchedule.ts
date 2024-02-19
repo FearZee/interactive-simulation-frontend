@@ -1,20 +1,23 @@
 import { atom, useAtom } from "jotai";
 
-interface UserSchedule {
+export interface UserSchedule {
   time_slot: number;
-  device: {
-    base_device_reference: string;
-    duration: number;
-    wattage: number;
-    name: string;
-  }[];
+  device: UserScheduleDevice[];
+}
+
+export interface UserScheduleDevice {
+  reference: string;
+  base_device_reference: string;
+  duration: number;
+  wattage: number;
+  name: string;
 }
 
 export const userScheduleAtom = atom<UserSchedule[] | undefined>(undefined);
 
-const readOnlyAtom = atom((get) => get(userScheduleAtom));
+export const readUserScheduleAtom = atom((get) => get(userScheduleAtom));
 
 export const useUserSchedule = (timeSlot: number) => {
-  const [schedule] = useAtom(readOnlyAtom);
+  const [schedule] = useAtom(readUserScheduleAtom);
   return schedule?.find(({ time_slot }) => time_slot === timeSlot);
 };

@@ -5,8 +5,6 @@ import { useMediaQuery } from "@mantine/hooks";
 export const SimulationShell = () => {
   const isLargeScreen = useMediaQuery("(min-width: 1921px)");
 
-  console.log(isLargeScreen);
-
   return (
     <AppShell>
       <AppShell.Main

@@ -1,6 +1,7 @@
 import {
   Button,
   Card,
+  Divider,
   Grid,
   GridCol,
   ScrollArea,
@@ -9,7 +10,7 @@ import {
 } from "@mantine/core";
 import { TimeSlot } from "../time-slot/TimeSlot.tsx";
 import { useNavigate } from "react-router-dom";
-import { FC, useEffect, useState } from "react";
+import { FC, useState } from "react";
 import { AppModal } from "../modal/Modal.tsx";
 import { LineChart } from "@mantine/charts";
 import { DeviceCard } from "../deviceCard/DeviceCard.tsx";
@@ -18,10 +19,24 @@ import { useScheduleDevicesQuery } from "../../data/schedule/schedule.queries.ts
 import { ScheduleDevice } from "../../data/schedule/schedule.types.ts";
 import { usePhotovoltaicQuery } from "../../data/photovoltaic/photovoltaic.queries.ts";
 import { useMarketPriceQueries } from "../../data/market-price/marketPrice.queries.ts";
+import dayjs from "dayjs";
+import { UserScheduleDevice } from "../../state/userSchedule.ts";
+import { randomId } from "@mantine/hooks";
+import { useBattery } from "../../utils/useBattery.ts";
 
 interface SchedulerProps {
   simulationReference?: string;
 }
+
+const dayOfYearToDate = (dayOfYear: number) => {
+  const currentDate = new Date(new Date().getFullYear(), 0); // January 1st of the current year
+  const targetDate = new Date(currentDate.setDate(dayOfYear));
+
+  // Format the date as a string
+  const dateString = targetDate.toDateString().split("T")[0];
+
+  return dayjs(dateString).format("DD.MM.YYYY");
+};
 
 export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
   const { data: simulation, isLoading } =
@@ -35,16 +50,14 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
   const { data: marketPrice } = useMarketPriceQueries(
     simulation?.energy_market_reference,
   );
-  const date = "22.01.2024";
+
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [opened, setOpened] = useState(false);
+  const [loading] = useState(false);
+  const [opened, setOpened] = useState<string | null>(null);
 
-  const [selected, setSelect] = useState<string | null>(null);
+  const [selected, setSelect] = useState<UserScheduleDevice | null>(null);
 
-  useEffect(() => {
-    setTimeout(() => setLoading(false), 1000);
-  }, []);
+  const batterySchedule = useBattery(simulationReference);
 
   if (
     isLoading ||
@@ -52,10 +65,13 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
     !scheduleDevices ||
     !simulation ||
     !outputPV ||
-    !marketPrice
+    !marketPrice ||
+    !batterySchedule
   ) {
     return <LoadingTimeSlot />;
   }
+
+  const date = dayOfYearToDate(simulation?.day);
 
   const scheduleDevicesObject = scheduleDevices.reduce(
     (obj: { [key: string]: ScheduleDevice[] }, item) => {
@@ -75,18 +91,25 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
     ) : (
       <ScrollArea h={"calc(100vh - 2rem)"} offsetScrollbars>
         <Stack gap={"md"}>
+          {/*TODO: Add AddTimeSlotComponent}*/}
           {Object.keys(scheduleDevicesObject).map((key) => (
-            <TimeSlot
-              key={key}
-              time={key}
-              onSelect={setSelect}
-              devices={scheduleDevicesObject[key]}
-              pvOutput={outputPV?.energy[key]}
-              marketPrice={marketPrice?.price[key]}
-            />
+            <div key={randomId()}>
+              <TimeSlot
+                key={key}
+                time={key}
+                onSelect={setSelect}
+                devices={scheduleDevicesObject[key]}
+                pvOutput={outputPV?.energy[key]}
+                marketPrice={marketPrice?.price[key]}
+                batteryStorage={batterySchedule?.[Number(key)].batteryStorage}
+              />
+              <Divider key={randomId()} />
+            </div>
           ))}
         </Stack>
-        {selected && <DeviceCard onClose={() => setSelect(null)} />}
+        {selected && (
+          <DeviceCard selected={selected} onClose={() => setSelect(null)} />
+        )}
       </ScrollArea>
     );
 
@@ -94,15 +117,49 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
     <>
       <AppModal
         title={"Photovoltaic energy production"}
-        opened={opened}
-        close={() => setOpened(false)}
+        opened={opened === "pv"}
+        close={() => setOpened(null)}
         modalContent={
           <LineChart
             h={300}
-            data={dataArray}
+            data={Object.keys(outputPV?.energy).map((value, index) => ({
+              index: index,
+              hour: index,
+              value: outputPV?.energy[value] || 0,
+            }))}
             dataKey="hour"
             series={[{ name: "value", color: "indigo.6" }]}
             curveType="linear"
+            valueFormatter={(value) => `${value.toFixed(2)} kWh`}
+          />
+        }
+      />
+      <AppModal
+        title={"Energy market prices"}
+        opened={opened === "market"}
+        close={() => setOpened(null)}
+        modalContent={
+          <LineChart
+            h={300}
+            data={Object.keys(marketPrice?.price).reduce(
+              (
+                acc: { index: number; hour: number; value: number }[],
+                value,
+                index,
+              ) => {
+                acc.push({
+                  index: index,
+                  hour: index,
+                  value: marketPrice?.price[value],
+                });
+                return acc;
+              },
+              [],
+            )}
+            dataKey="hour"
+            series={[{ name: "value", color: "indigo.6" }]}
+            curveType="linear"
+            valueFormatter={(value) => `${value.toFixed(2)} cent`}
           />
         }
       />
@@ -116,22 +173,26 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
               <Button
                 variant="default"
                 color="gray"
-                onClick={() => setOpened(true)}
+                onClick={() => setOpened("pv")}
               >
                 Photovoltaic
               </Button>
               <Button variant="default" color="gray">
                 Weather
               </Button>
-              <Button variant="default" color="gray">
+              <Button
+                variant="default"
+                color="gray"
+                onClick={() => setOpened("market")}
+              >
                 Energy market
               </Button>
             </Stack>
             <Button
               variant="gradient"
-              gradient={{ from: "lime-green.5", to: "lime-green.6", deg: 90 }}
+              gradient={{ from: "limeGreen.5", to: "limeGreen.6", deg: 90 }}
               c={"black"}
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate(`/${simulationReference}`)}
             >
               Accept Schedule
             </Button>
@@ -154,30 +215,3 @@ const LoadingTimeSlot = () => {
     </Stack>
   );
 };
-
-const dataArray = [
-  { index: 0, hour: 0, value: 0 },
-  { index: 1, hour: 1, value: 0 },
-  { index: 2, hour: 2, value: 0 },
-  { index: 3, hour: 3, value: 0 },
-  { index: 4, hour: 4, value: 0 },
-  { index: 5, hour: 5, value: 0 },
-  { index: 6, hour: 6, value: 0 },
-  { index: 7, hour: 7, value: 0 },
-  { index: 8, hour: 8, value: 1.456430895 },
-  { index: 9, hour: 9, value: 6.39857097 },
-  { index: 10, hour: 10, value: 6.925654994 },
-  { index: 11, hour: 11, value: 3.050483529 },
-  { index: 12, hour: 12, value: 2.760623009 },
-  { index: 13, hour: 13, value: 5.276061796 },
-  { index: 14, hour: 14, value: 8.844594436 },
-  { index: 15, hour: 15, value: 3.854294013 },
-  { index: 16, hour: 16, value: 8.775178442 },
-  { index: 17, hour: 17, value: 0 },
-  { index: 18, hour: 18, value: 0 },
-  { index: 19, hour: 19, value: 0 },
-  { index: 20, hour: 20, value: 0 },
-  { index: 21, hour: 21, value: 0 },
-  { index: 22, hour: 22, value: 0 },
-  { index: 23, hour: 23, value: 0 },
-];

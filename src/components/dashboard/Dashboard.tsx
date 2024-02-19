@@ -69,10 +69,10 @@ export const Dashboard: FC<DashboardProps> = ({ simulationReference }) => {
           <SuggestionContainer />
           <Button
             variant="gradient"
-            gradient={{ from: "lime-green.5", to: "lime-green.6", deg: 90 }}
+            gradient={{ from: "limeGreen.5", to: "limeGreen.6", deg: 90 }}
             c={"black"}
             size={"lg"}
-            onClick={() => navigate(`${simulation.reference}/scheduler`)}
+            onClick={() => navigate(`planer`, { replace: true })}
           >
             Scheduler
           </Button>

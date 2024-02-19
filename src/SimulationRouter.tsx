@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useParams } from "react-router-dom";
+import { Route, Routes, useParams } from "react-router-dom";
 import { Dashboard } from "./components/dashboard/Dashboard.tsx";
 import { Scheduler } from "./components/scheduler/Scheduler.tsx";
 
@@ -12,9 +12,8 @@ export const SimulationRouter = () => {
   return (
     <Routes>
       <Route path={"/"}>
-        <Route index element={<Navigate to={"dashboard"} />} />
         <Route
-          path={"dashboard"}
+          index
           element={<Dashboard simulationReference={simulationReference} />}
         />
         <Route
