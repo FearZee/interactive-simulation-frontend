@@ -11,3 +11,21 @@ export interface ScheduleTypes {
   };
   day: number;
 }
+
+export interface ScheduleDevice {
+  time_slot: number;
+  intensity?: string;
+  schedule_reference: string;
+  type: string;
+  reference: string;
+  duration: number;
+  base_device: BaseDevice;
+}
+
+export interface BaseDevice {
+  controllable: boolean;
+  name: string;
+  reference: string;
+  type: string;
+  wattage: number;
+}

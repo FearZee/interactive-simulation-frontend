@@ -4,7 +4,7 @@ import {
   Route,
 } from "react-router-dom";
 import { SimulationShell } from "./components/simulationShell/SimulationShell.tsx";
-import { CreateOrLoadSimulation } from "./components/CreateOrLoadSimulation/CreateOrLoadSimulation.tsx";
+import { CreateOrLoadSimulation } from "./components/create-or-load-simulation/CreateOrLoadSimulation.tsx";
 import { SimulationRouter } from "./SimulationRouter.tsx";
 
 export const router = createBrowserRouter(

@@ -17,7 +17,10 @@ export const SimulationRouter = () => {
           path={"dashboard"}
           element={<Dashboard simulationReference={simulationReference} />}
         />
-        <Route path={"planer"} element={<Scheduler />} />
+        <Route
+          path={"planer"}
+          element={<Scheduler simulationReference={simulationReference} />}
+        />
       </Route>
     </Routes>
   );

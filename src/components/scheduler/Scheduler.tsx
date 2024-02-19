@@ -9,12 +9,32 @@ import {
 } from "@mantine/core";
 import { TimeSlot } from "../time-slot/TimeSlot.tsx";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { AppModal } from "../modal/Modal.tsx";
 import { LineChart } from "@mantine/charts";
 import { DeviceCard } from "../deviceCard/DeviceCard.tsx";
+import { useSimulationQuery } from "../../data/simulation/simulation.queries.ts";
+import { useScheduleDevicesQuery } from "../../data/schedule/schedule.queries.ts";
+import { ScheduleDevice } from "../../data/schedule/schedule.types.ts";
+import { usePhotovoltaicQuery } from "../../data/photovoltaic/photovoltaic.queries.ts";
+import { useMarketPriceQueries } from "../../data/market-price/marketPrice.queries.ts";
 
-export const Scheduler = () => {
+interface SchedulerProps {
+  simulationReference?: string;
+}
+
+export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
+  const { data: simulation, isLoading } =
+    useSimulationQuery(simulationReference);
+  const { data: scheduleDevices, isLoading: isScheduleLoading } =
+    useScheduleDevicesQuery(simulation?.schedule_reference);
+  const { data: outputPV } = usePhotovoltaicQuery(
+    simulation?.day,
+    simulation?.photovoltaic_reference,
+  );
+  const { data: marketPrice } = useMarketPriceQueries(
+    simulation?.energy_market_reference,
+  );
   const date = "22.01.2024";
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -26,20 +46,51 @@ export const Scheduler = () => {
     setTimeout(() => setLoading(false), 1000);
   }, []);
 
+  if (
+    isLoading ||
+    isScheduleLoading ||
+    !scheduleDevices ||
+    !simulation ||
+    !outputPV ||
+    !marketPrice
+  ) {
+    return <LoadingTimeSlot />;
+  }
+
+  const scheduleDevicesObject = scheduleDevices.reduce(
+    (obj: { [key: string]: ScheduleDevice[] }, item) => {
+      if (!obj[item.time_slot]) {
+        obj[item.time_slot] = [item];
+      } else {
+        obj[item.time_slot].push(item);
+      }
+      return obj;
+    },
+    {},
+  );
+
+  console.log(scheduleDevicesObject);
+
   const renderSlotList = () =>
     loading ? (
       <LoadingTimeSlot />
     ) : (
       <ScrollArea h={"calc(100vh - 2rem)"} offsetScrollbars>
         <Stack gap={"md"}>
-          <TimeSlot time={"12:00"} onSelect={setSelect} />
-          <TimeSlot time={"13:00"} onSelect={setSelect} />
-          <TimeSlot time={"14:00"} onSelect={setSelect} />
-          <TimeSlot time={"15:00"} onSelect={setSelect} />
+          {Object.keys(scheduleDevicesObject).map((key) => (
+            <TimeSlot
+              time={key}
+              onSelect={setSelect}
+              devices={scheduleDevicesObject[key]}
+              pvOutput={outputPV?.energy[key]}
+              marketPrice={marketPrice?.price[key]}
+            />
+          ))}
         </Stack>
         {selected && <DeviceCard onClose={() => setSelect(null)} />}
       </ScrollArea>
     );
+
   return (
     <>
       <AppModal
