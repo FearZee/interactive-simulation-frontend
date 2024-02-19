@@ -2,13 +2,17 @@ import { useControlledDevicesQuery } from "../../data/schedule/schedule.queries.
 import { Button, LoadingOverlay, Modal, Select } from "@mantine/core";
 import { FC, useState } from "react";
 import { BaseDevice } from "../../data/schedule/schedule.types.ts";
+import { useAtom } from "jotai";
+import { userScheduleAtom } from "../../state/userSchedule.ts";
 
 interface AddDeviceModalProps {
+  timeSlot: number;
   opened: boolean;
   onClose: () => void;
 }
 
 export const AddDeviceModal: FC<AddDeviceModalProps> = ({
+  timeSlot,
   opened,
   onClose,
 }) => {
@@ -17,6 +21,8 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
     undefined,
   );
   const [duration, setDuration] = useState<number | null>(null);
+
+  const [, setUserSchedule] = useAtom(userScheduleAtom);
 
   if (isLoading || !baseDevices) {
     return <LoadingOverlay />;
@@ -40,7 +46,32 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
 
   const handleAddDevice = () => {
     if (selectedDevice && duration) {
-      console.log(selectedDevice, duration);
+      setUserSchedule((schedule) => {
+        const found = schedule?.find((item) => item.time_slot === timeSlot);
+        if (found) {
+          found.device.push({
+            base_device_reference: selectedDevice.reference,
+            duration: duration,
+            wattage: selectedDevice.wattage,
+            name: selectedDevice.name,
+          });
+          return [...schedule!, found];
+        }
+        return [
+          ...(schedule || []),
+          {
+            time_slot: timeSlot,
+            device: [
+              {
+                base_device_reference: selectedDevice.reference,
+                duration: duration,
+                wattage: selectedDevice.wattage,
+                name: selectedDevice.name,
+              },
+            ],
+          },
+        ];
+      });
     }
 
     onClose();

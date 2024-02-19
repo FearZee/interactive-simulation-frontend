@@ -69,8 +69,6 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
     {},
   );
 
-  console.log(scheduleDevicesObject);
-
   const renderSlotList = () =>
     loading ? (
       <LoadingTimeSlot />
@@ -79,6 +77,7 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
         <Stack gap={"md"}>
           {Object.keys(scheduleDevicesObject).map((key) => (
             <TimeSlot
+              key={key}
               time={key}
               onSelect={setSelect}
               devices={scheduleDevicesObject[key]}

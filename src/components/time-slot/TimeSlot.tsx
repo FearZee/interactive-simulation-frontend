@@ -3,6 +3,8 @@ import { FC, useState } from "react";
 import { IconPlus } from "@tabler/icons-react";
 import { ScheduleDevice } from "../../data/schedule/schedule.types.ts";
 import { AddDeviceModal } from "../add-device-modal/AddDeviceModal.tsx";
+import { useUserSchedule } from "../../state/userSchedule.ts";
+import { randomId } from "@mantine/hooks";
 
 interface TimeSlotProps {
   time: string;
@@ -20,15 +22,24 @@ export const TimeSlot: FC<TimeSlotProps> = ({
   marketPrice,
 }) => {
   const [modalOpened, setModalOpened] = useState(false);
-  const { output, energyPrice, usage } = {
+  const userDevices = useUserSchedule(Number(time));
+  const { output, energyPrice } = {
     output: pvOutput,
     energyPrice: marketPrice,
-    usage: devices.reduce(
+  };
+
+  const usage =
+    devices.reduce(
       (acc, val) =>
         acc + ((val.base_device.wattage / 1000) * val.duration) / 60,
       0,
-    ),
-  };
+    ) +
+    (userDevices
+      ? userDevices.device.reduce(
+          (acc, val) => acc + (val.wattage / 1000) * (val.duration / 60),
+          0,
+        )
+      : 0);
   const leftEnergy = output - usage;
   const formattedHour = time.padStart(2, "0");
   const timeString = `${formattedHour}:00`;
@@ -36,6 +47,7 @@ export const TimeSlot: FC<TimeSlotProps> = ({
   return (
     <>
       <AddDeviceModal
+        timeSlot={Number(time)}
         opened={modalOpened}
         onClose={() => setModalOpened(false)}
       />
@@ -64,6 +76,10 @@ export const TimeSlot: FC<TimeSlotProps> = ({
               Left energy: <br />
               {leftEnergy.toFixed(2)} kWh
             </Text>
+            <Text fz={"xs"}>
+              Battery Storage: <br />
+              {leftEnergy.toFixed(2)} kWh
+            </Text>
           </Stack>
           <Flex gap={"md"} wrap={"wrap"} w={"100%"}>
             {devices.map((device) => (
@@ -75,6 +91,15 @@ export const TimeSlot: FC<TimeSlotProps> = ({
                   (device.base_device.wattage / 1000) * (device.duration / 60)
                 }
                 onClick={device.base_device.controllable ? onSelect : undefined}
+              />
+            ))}
+            {userDevices?.device.map((device) => (
+              <DeviceCard
+                key={randomId()}
+                deviceName={device.name}
+                duration={device.duration}
+                usage={(device.wattage / 1000) * (device.duration / 60)}
+                onClick={onSelect}
               />
             ))}
             <Button
@@ -115,7 +140,7 @@ const DeviceCard: FC<DeviceCardProps> = ({
       <Text>{deviceName}</Text>
       <Space h={"sm"} />
       <Text>In use for: {duration} minutes</Text>
-      <Text>Usage: {usage} kWh</Text>
+      <Text>Usage: {usage.toFixed(3)} kWh</Text>
     </Card>
   );
 };
