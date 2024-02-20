@@ -29,11 +29,11 @@ interface SchedulerProps {
 }
 
 const dayOfYearToDate = (dayOfYear: number) => {
-  const currentDate = new Date(new Date().getFullYear(), 0); // January 1st of the current year
+  const currentDate = new Date(new Date().getFullYear(), 0);
   const targetDate = new Date(currentDate.setDate(dayOfYear));
 
   // Format the date as a string
-  const dateString = targetDate.toDateString().split("T")[0];
+  const dateString = targetDate.toISOString().split("T")[0];
 
   return dayjs(dateString).format("DD.MM.YYYY");
 };
@@ -129,6 +129,7 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
             }))}
             dataKey="hour"
             series={[{ name: "value", color: "indigo.6" }]}
+            yAxisProps={{ width: 100 }}
             curveType="linear"
             valueFormatter={(value) => `${value.toFixed(2)} kWh`}
           />
@@ -159,6 +160,7 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
             dataKey="hour"
             series={[{ name: "value", color: "indigo.6" }]}
             curveType="linear"
+            yAxisProps={{ width: 100 }}
             valueFormatter={(value) => `${value.toFixed(2)} cent`}
           />
         }

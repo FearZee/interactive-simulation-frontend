@@ -27,13 +27,38 @@ export const useBattery = (simulationReference?: string) => {
   let batteryStorage = battery.capacity * battery.charge;
 
   return [...Array(24).keys()].map((timeSlot) => {
-    const userDevices = userSchedule?.find(
+    const userDevice = userSchedule?.find(
       (item) => item.time_slot === timeSlot,
     );
 
-    const batteryDevice = userDevices?.device.find(
+    const devices = scheduleDevices.filter(
+      (item) => item.time_slot === timeSlot,
+    );
+
+    const output = outputPV.energy[timeSlot];
+
+    const usage =
+      devices.reduce(
+        (acc, val) =>
+          acc + ((val.base_device.wattage / 1000) * val.duration) / 60,
+        0,
+      ) +
+      (userDevice
+        ? userDevice.device.reduce(
+            (acc, val) => acc + (val.wattage / 1000) * (val.duration / 60),
+            0,
+          )
+        : 0);
+
+    const leftEnergy = output - usage;
+
+    const batteryDevice = userDevice?.device.find(
       (item) => item.name === "Battery",
     );
+
+    if (leftEnergy < 0) {
+      batteryStorage += leftEnergy;
+    }
 
     if (batteryDevice) {
       batteryStorage += batteryDevice.wattage / 1000;

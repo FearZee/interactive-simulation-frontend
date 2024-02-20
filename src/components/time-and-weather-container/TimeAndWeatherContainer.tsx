@@ -14,7 +14,7 @@ const dayOfYearToDate = (dayOfYear: number) => {
   const targetDate = new Date(currentDate.setDate(dayOfYear));
 
   // Format the date as a string
-  const dateString = targetDate.toDateString().split("T")[0];
+  const dateString = targetDate.toISOString().split("T")[0];
 
   return dayjs(dateString).format("DD.MM.YYYY");
 };
