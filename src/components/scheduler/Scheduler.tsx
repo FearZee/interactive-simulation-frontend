@@ -21,10 +21,14 @@ import { ScheduleDevice } from "../../data/schedule/schedule.types.ts";
 import { usePhotovoltaicQuery } from "../../data/photovoltaic/photovoltaic.queries.ts";
 import { useMarketPriceQueries } from "../../data/market-price/marketPrice.queries.ts";
 import dayjs from "dayjs";
-import { UserScheduleDevice } from "../../state/userSchedule.ts";
+import {
+  userScheduleAtom,
+  UserScheduleDevice,
+} from "../../state/userSchedule.ts";
 import { randomId } from "@mantine/hooks";
 import { useBattery } from "../../utils/useBattery.ts";
 import { useHeatFactor } from "../../utils/useHeatFactor.ts";
+import { useAtom } from "jotai";
 
 interface SchedulerProps {
   simulationReference?: string;
@@ -62,6 +66,7 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
   // TODO make this more performant
   const batteryStorage = useBattery(simulationReference);
   const heatFactor = useHeatFactor(simulationReference);
+  const [userSchedule] = useAtom(userScheduleAtom);
 
   if (
     isLoading ||
@@ -124,6 +129,11 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
     "Elektroauto mit 7 kWh laden",
     "Battery auf 5 kWh haben",
   ];
+
+  const handleConfirmSchedule = () => {
+    console.log("Confirm schedule", userSchedule);
+    navigate(`/${simulationReference}`);
+  };
 
   return (
     <>
@@ -210,7 +220,7 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
               variant="gradient"
               gradient={{ from: "limeGreen.5", to: "limeGreen.6", deg: 90 }}
               c={"black"}
-              onClick={() => navigate(`/${simulationReference}`)}
+              onClick={handleConfirmSchedule}
             >
               Accept Schedule
             </Button>

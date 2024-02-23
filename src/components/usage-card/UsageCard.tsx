@@ -40,7 +40,7 @@ export const UsageChart: FC<UsageChartProps> = ({
 
   if (!scheduleDevices) return null;
 
-  const heightFactor = isLargeHeight ? 1.4 : isSmallHeight ? 1 : 1.2;
+  const heightFactor = isLargeHeight ? 1.35 : isSmallHeight ? 1 : 1.2;
 
   const data = Object.keys(scheduleComplete).map((key) => {
     let usage = 0;

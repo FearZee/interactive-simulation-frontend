@@ -43,7 +43,9 @@ export const useHeatFactor = (simulationReference?: string) => {
 
     if (heatFactor < 0.9) {
       setUserSchedule((schedule) => {
-        const found = schedule?.find((item) => item.time_slot === timeSlot);
+        const foundIndex = schedule?.findIndex(
+          (item) => item.time_slot === timeSlot,
+        );
         const heatPumpDevice = baseDevices.find(
           (device) => device.type === "heat-pump",
         );
@@ -60,7 +62,10 @@ export const useHeatFactor = (simulationReference?: string) => {
           name: heatPumpDevice!.name,
         };
 
-        if (found) {
+        if (foundIndex !== undefined && schedule) {
+          const updatedSchedule = schedule;
+          const newDevice = heatPumpUserDevice;
+          const found = schedule[foundIndex];
           if (
             found.device.find(
               (device) =>
@@ -69,9 +74,12 @@ export const useHeatFactor = (simulationReference?: string) => {
           ) {
             return schedule;
           }
-          found.device.push(heatPumpUserDevice);
-          return [...schedule!, found];
+          found.device.push(newDevice);
+          console.log(found);
+          updatedSchedule[foundIndex] = found;
+          return updatedSchedule;
         }
+
         return [
           ...(schedule || []),
           {

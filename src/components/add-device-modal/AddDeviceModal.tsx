@@ -64,16 +64,24 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
   const handleAddDevice = () => {
     if (selectedDevice) {
       setUserSchedule((schedule) => {
-        const found = schedule?.find((item) => item.time_slot === timeSlot);
-        if (found) {
-          found.device.push({
+        const foundIndex = schedule?.findIndex(
+          (item) => item.time_slot === timeSlot,
+        );
+
+        if (foundIndex !== undefined && schedule) {
+          const updatedSchedule = schedule;
+          const newDevice = {
             reference: uuidv4(),
             base_device_reference: selectedDevice.reference,
             duration: duration || 60,
             wattage: selectedDevice.wattage || leftEnergy * 1000,
             name: selectedDevice.name,
-          });
-          return [...schedule!, found];
+          };
+          const found = schedule[foundIndex];
+          found.device.push(newDevice);
+          console.log(found);
+          updatedSchedule[foundIndex] = found;
+          return updatedSchedule;
         }
         return [
           ...(schedule || []),
