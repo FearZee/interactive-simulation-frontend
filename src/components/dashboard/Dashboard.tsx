@@ -1,14 +1,14 @@
 import { TimeAndWeatherInfo } from "../time-and-weather-container/TimeAndWeatherContainer.tsx";
 import { UsageChart } from "../usage-card/UsageCard.tsx";
 import { InfoContainer } from "../info-container/InfoContainer.tsx";
-import { Button, Grid, LoadingOverlay, Stack } from "@mantine/core";
+import { Grid, LoadingOverlay, Stack } from "@mantine/core";
 import { SuggestionContainer } from "../suggestionContainer/SuggestionContainer.tsx";
-import { useNavigate } from "react-router-dom";
 import { FC } from "react";
 import { useSimulationQuery } from "../../data/simulation/simulation.queries.ts";
 import { useScheduleQuery } from "../../data/schedule/schedule.queries.ts";
 import { useMarketPriceQueries } from "../../data/market-price/marketPrice.queries.ts";
 import { usePhotovoltaicQuery } from "../../data/photovoltaic/photovoltaic.queries.ts";
+import { TaskScheduleContainer } from "../task-schedule-container/TaskScheduleContainer.tsx";
 
 interface DashboardProps {
   simulationReference?: string;
@@ -29,8 +29,6 @@ export const Dashboard: FC<DashboardProps> = ({ simulationReference }) => {
     simulation?.photovoltaic_reference,
   );
 
-  const navigate = useNavigate();
-
   if (
     isLoading ||
     isScheduleLoading ||
@@ -47,6 +45,13 @@ export const Dashboard: FC<DashboardProps> = ({ simulationReference }) => {
     0,
   );
 
+  const tasks = [
+    "Eigenverbrauch maximieren",
+    "Heat factor über 0.4 halten",
+    "Elektroauto mit 7 kWh laden",
+    "Battery auf 5 kWh haben",
+  ];
+
   return (
     <Grid gutter="md" mt={".5rem"} grow h={"100%"}>
       <Grid.Col span={8} h={"100%"}>
@@ -55,7 +60,10 @@ export const Dashboard: FC<DashboardProps> = ({ simulationReference }) => {
             weatherReference={simulation.weather_reference}
             day={simulation.day}
           />
-          <UsageChart scheduleComplete={schedule?.complete} />
+          <UsageChart
+            scheduleComplete={schedule?.complete}
+            scheduleReference={simulation.schedule_reference}
+          />
           <InfoContainer
             time={"12:00"}
             electricityPrice={marketPrice?.price[12]}
@@ -66,16 +74,8 @@ export const Dashboard: FC<DashboardProps> = ({ simulationReference }) => {
       </Grid.Col>
       <Grid.Col span={4}>
         <Stack justify={"space-between"} h={"100%"}>
+          <TaskScheduleContainer tasks={tasks} />
           <SuggestionContainer />
-          <Button
-            variant="gradient"
-            gradient={{ from: "limeGreen.5", to: "limeGreen.6", deg: 90 }}
-            c={"black"}
-            size={"lg"}
-            onClick={() => navigate(`planer`, { replace: true })}
-          >
-            Scheduler
-          </Button>
         </Stack>
       </Grid.Col>
     </Grid>

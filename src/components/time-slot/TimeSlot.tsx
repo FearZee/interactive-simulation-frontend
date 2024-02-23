@@ -13,12 +13,13 @@ import { randomId } from "@mantine/hooks";
 import { useAtom } from "jotai";
 
 interface TimeSlotProps {
-  time: string;
+  time: number;
   onSelect: (selected: UserScheduleDevice) => void;
-  devices: ScheduleDevice[];
+  devices?: ScheduleDevice[];
   pvOutput: number;
   marketPrice: number;
   batteryStorage: number;
+  heatFactor: number;
 }
 
 export const TimeSlot: FC<TimeSlotProps> = ({
@@ -28,6 +29,7 @@ export const TimeSlot: FC<TimeSlotProps> = ({
   pvOutput,
   marketPrice,
   batteryStorage,
+  heatFactor,
 }) => {
   const [modalOpened, setModalOpened] = useState(false);
   const userDevices = useUserSchedule(Number(time));
@@ -39,19 +41,22 @@ export const TimeSlot: FC<TimeSlotProps> = ({
   };
 
   const usage =
-    devices.reduce(
-      (acc, val) =>
-        acc + ((val.base_device.wattage / 1000) * val.duration) / 60,
-      0,
-    ) +
+    (devices
+      ? devices.reduce(
+          (acc, val) =>
+            acc + ((val.base_device.wattage / 1000) * val.duration) / 60,
+          0,
+        )
+      : 0) +
     (userDevices
       ? userDevices.device.reduce(
           (acc, val) => acc + (val.wattage / 1000) * (val.duration / 60),
           0,
         )
       : 0);
+
   const leftEnergy = output - usage;
-  const formattedHour = time.padStart(2, "0");
+  const formattedHour = time.toString().padStart(2, "0");
   const timeString = `${formattedHour}:00`;
 
   const handleRemove = (deviceReference: string) => {
@@ -85,10 +90,6 @@ export const TimeSlot: FC<TimeSlotProps> = ({
               {output.toFixed(3)} kWh
             </Text>
             <Text fz={"xs"}>
-              Energy price: <br />
-              {energyPrice.toFixed(2)} cent
-            </Text>
-            <Text fz={"xs"}>
               Usage: <br />
               {usage.toFixed(3)} kWh
             </Text>
@@ -97,12 +98,22 @@ export const TimeSlot: FC<TimeSlotProps> = ({
               {batteryStorage.toFixed(3)} kWh
             </Text>
             <Text fz={"xs"}>
-              Left energy: <br />
-              {leftEnergy.toFixed(3)} kWh
+              Heat Factor: <br />
+              {heatFactor.toFixed(1)} %
             </Text>
+            <Text fz={"xs"}>
+              Energy price: <br />
+              {energyPrice.toFixed(2)} cent
+            </Text>
+            {false && (
+              <Text fz={"xs"}>
+                Left energy: <br />
+                {leftEnergy.toFixed(3)} kWh
+              </Text>
+            )}
           </Stack>
           <Flex gap={"md"} wrap={"wrap"} w={"100%"}>
-            {devices.map((device) => (
+            {devices?.map((device) => (
               <DeviceCard
                 key={randomId()}
                 // key={device.reference}

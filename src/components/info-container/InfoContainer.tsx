@@ -18,7 +18,7 @@ export const InfoContainer: FC<InfoContainerProps> = ({
     <Card bg={"#fff"}>
       <Text>Time-related data: {time}</Text>
       <Space h={"sm"} />
-      <SimpleGrid cols={2}>
+      <SimpleGrid cols={2} spacing={"sm"}>
         <CustomCard>
           <Text>Power consumption</Text>
           <Text fz={"xl"} w={"100%"} ta={"center"}>
@@ -58,7 +58,9 @@ interface CustomCardProps {
 const CustomCard: FC<CustomCardProps> = ({ children }) => {
   return (
     <Card>
-      <Stack align={"start"}>{children}</Stack>
+      <Stack align={"start"} gap={"sm"}>
+        {children}
+      </Stack>
     </Card>
   );
 };

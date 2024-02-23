@@ -7,6 +7,7 @@ import {
   ScrollArea,
   Skeleton,
   Stack,
+  Text,
 } from "@mantine/core";
 import { TimeSlot } from "../time-slot/TimeSlot.tsx";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +24,7 @@ import dayjs from "dayjs";
 import { UserScheduleDevice } from "../../state/userSchedule.ts";
 import { randomId } from "@mantine/hooks";
 import { useBattery } from "../../utils/useBattery.ts";
+import { useHeatFactor } from "../../utils/useHeatFactor.ts";
 
 interface SchedulerProps {
   simulationReference?: string;
@@ -57,7 +59,9 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
 
   const [selected, setSelect] = useState<UserScheduleDevice | null>(null);
 
-  const batterySchedule = useBattery(simulationReference);
+  // TODO make this more performant
+  const batteryStorage = useBattery(simulationReference);
+  const heatFactor = useHeatFactor(simulationReference);
 
   if (
     isLoading ||
@@ -66,7 +70,8 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
     !simulation ||
     !outputPV ||
     !marketPrice ||
-    !batterySchedule
+    !batteryStorage ||
+    !heatFactor
   ) {
     return <LoadingTimeSlot />;
   }
@@ -91,8 +96,7 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
     ) : (
       <ScrollArea h={"calc(100vh - 2rem)"} offsetScrollbars>
         <Stack gap={"md"}>
-          {/*TODO: Add AddTimeSlotComponent}*/}
-          {Object.keys(scheduleDevicesObject).map((key) => (
+          {[...Array(24).keys()].map((key) => (
             <div key={randomId()}>
               <TimeSlot
                 key={key}
@@ -101,7 +105,8 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
                 devices={scheduleDevicesObject[key]}
                 pvOutput={outputPV?.energy[key]}
                 marketPrice={marketPrice?.price[key]}
-                batteryStorage={batterySchedule?.[Number(key)].batteryStorage}
+                batteryStorage={batteryStorage[Number(key)].batteryStorage}
+                heatFactor={heatFactor[Number(key)].heatFactor}
               />
               <Divider key={randomId()} />
             </div>
@@ -112,6 +117,13 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
         )}
       </ScrollArea>
     );
+
+  const tasks = [
+    "Eigenverbrauch maximieren",
+    "Heat factor über 0.4 halten",
+    "Elektroauto mit 7 kWh laden",
+    "Battery auf 5 kWh haben",
+  ];
 
   return (
     <>
@@ -179,9 +191,6 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
               >
                 Photovoltaic
               </Button>
-              <Button variant="default" color="gray">
-                Weather
-              </Button>
               <Button
                 variant="default"
                 color="gray"
@@ -189,6 +198,13 @@ export const Scheduler: FC<SchedulerProps> = ({ simulationReference }) => {
               >
                 Energy market
               </Button>
+              <Divider />
+              <Text fz={"lg"}>Tasks</Text>
+              {tasks.map((task, index) => (
+                <Text key={index} fz={"sm"}>
+                  {task}
+                </Text>
+              ))}
             </Stack>
             <Button
               variant="gradient"

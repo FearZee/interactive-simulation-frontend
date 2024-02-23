@@ -1,4 +1,4 @@
-import { Flex, LoadingOverlay, Stack, Text } from "@mantine/core";
+import { Card, Flex, LoadingOverlay, rem, Stack, Text } from "@mantine/core";
 import { IconCloud, IconCloudRain, IconSun } from "@tabler/icons-react";
 import { FC } from "react";
 import { useWeatherQuery } from "../../data/weather/weather.queries.ts";
@@ -36,21 +36,23 @@ export const TimeAndWeatherInfo: FC<TimeAndWeatherInfoProps> = ({
   }
 
   return (
-    <Stack align={"flex-start"}>
-      <Text>{t}</Text>
-      <Flex justify={"space-evenly"} w={"100%"}>
-        {Object.keys(data.weather).map((key, index) =>
-          index % 2 === 0 ? (
-            <WeatherItem
-              key={randomId()}
-              weatherType={data.weather[key].sun - data.weather[key].cloud}
-              temp={data.weather[key].temperature}
-              hour={key}
-            />
-          ) : null,
-        )}
-      </Flex>
-    </Stack>
+    <Card mih={rem(180)}>
+      <Stack align={"flex-start"}>
+        <Text>{t}</Text>
+        <Flex justify={"space-evenly"} w={"100%"}>
+          {Object.keys(data.weather).map((key, index) =>
+            index % 2 === 0 ? (
+              <WeatherItem
+                key={randomId()}
+                weatherType={data.weather[key].sun - data.weather[key].cloud}
+                temp={data.weather[key].temperature}
+                hour={key}
+              />
+            ) : null,
+          )}
+        </Flex>
+      </Stack>
+    </Card>
   );
 };
 
@@ -64,7 +66,7 @@ const WeatherItem: FC<WeatherItemProps> = ({ weatherType, temp, hour }) => {
   const formattedHour = hour.padStart(2, "0");
   const timeString = `${formattedHour}:00`;
   return (
-    <Stack gap={"xs"}>
+    <Stack gap={"sm"}>
       <Text>
         {(weatherType > 0 && <IconSun />) ||
           (weatherType < -0.8 && <IconCloudRain />) || <IconCloud />}
