@@ -64,11 +64,10 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
   const handleAddDevice = () => {
     if (selectedDevice) {
       setUserSchedule((schedule) => {
-        const foundIndex = schedule?.findIndex(
-          (item) => item.time_slot === timeSlot,
-        );
+        const foundIndex =
+          schedule?.findIndex((item) => item.time_slot === timeSlot) || -1;
 
-        if (foundIndex !== undefined && schedule) {
+        if (foundIndex !== -1 && schedule) {
           const updatedSchedule = schedule;
           const newDevice = {
             reference: uuidv4(),
@@ -81,7 +80,13 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
           found.device.push(newDevice);
           console.log(found);
           updatedSchedule[foundIndex] = found;
-          return updatedSchedule;
+          return [
+            ...schedule,
+            {
+              ...schedule[foundIndex],
+              device: [...schedule[foundIndex].device, newDevice],
+            },
+          ];
         }
         return [
           ...(schedule || []),

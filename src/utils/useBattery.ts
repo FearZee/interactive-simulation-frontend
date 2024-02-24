@@ -24,6 +24,8 @@ export const useBattery = (simulationReference?: string) => {
     return null;
   }
 
+  console.log(userSchedule);
+
   let batteryStorage = battery.capacity * battery.charge;
 
   return [...Array(24).keys()].map((timeSlot) => {

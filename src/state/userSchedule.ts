@@ -2,7 +2,7 @@ import { atom, useAtom } from "jotai";
 
 export interface UserSchedule {
   time_slot: number;
-  device: UserScheduleDevice[];
+  device: UserScheduleDevice[] | [];
 }
 
 export interface UserScheduleDevice {

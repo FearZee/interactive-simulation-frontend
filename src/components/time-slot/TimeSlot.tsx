@@ -60,16 +60,21 @@ export const TimeSlot: FC<TimeSlotProps> = ({
   const timeString = `${formattedHour}:00`;
 
   const handleRemove = (deviceReference: string) => {
-    setUserSchedule((schedule) => {
-      const found = schedule?.find((item) => item.time_slot === Number(time));
-      if (found) {
-        found.device = found.device.filter(
-          (item) => item.reference !== deviceReference,
-        );
-        return [...schedule!, found];
-      }
-      return schedule;
-    });
+    console.log(deviceReference);
+    setUserSchedule((schedule) => [
+      ...(schedule ?? []).map((entry) => {
+        const updatedDevices = [
+          ...entry.device.filter(
+            (device) => device.reference !== deviceReference,
+          ),
+        ];
+
+        return {
+          time_slot: entry.time_slot,
+          device: updatedDevices,
+        };
+      }),
+    ]);
   };
 
   return (
