@@ -60,7 +60,6 @@ export const TimeSlot: FC<TimeSlotProps> = ({
   const timeString = `${formattedHour}:00`;
 
   const handleRemove = (deviceReference: string) => {
-    console.log(deviceReference);
     setUserSchedule((schedule) => [
       ...(schedule ?? []).map((entry) => {
         const updatedDevices = [

@@ -68,7 +68,6 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
           schedule?.findIndex((item) => item.time_slot === timeSlot) || -1;
 
         if (foundIndex !== -1 && schedule) {
-          const updatedSchedule = schedule;
           const newDevice = {
             reference: uuidv4(),
             base_device_reference: selectedDevice.reference,
@@ -76,10 +75,6 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
             wattage: selectedDevice.wattage || leftEnergy * 1000,
             name: selectedDevice.name,
           };
-          const found = schedule[foundIndex];
-          found.device.push(newDevice);
-          console.log(found);
-          updatedSchedule[foundIndex] = found;
           return [
             ...schedule,
             {
