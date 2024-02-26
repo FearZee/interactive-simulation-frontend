@@ -37,13 +37,7 @@ export const InfoContainer: FC<InfoContainerProps> = ({
           <Text>Electricity price</Text>
           <Text fz={"xl"} w={"100%"} ta={"center"}>
             {electricityPrice.toFixed(2)}
-            <span style={{ fontSize: "1rem" }}>Cent/kWh</span>
-          </Text>
-        </CustomCard>
-        <CustomCard>
-          <Text>Power consumption</Text>
-          <Text fz={"xl"} w={"100%"} ta={"center"}>
-            {powerConsumption.toFixed(2)}
+            <span style={{ fontSize: "1rem" }}> Cent/kWh</span>
           </Text>
         </CustomCard>
       </SimpleGrid>
