@@ -1,4 +1,5 @@
 FROM node AS builder
+ENV API_BASE_URL=
 
 WORKDIR /app
 
