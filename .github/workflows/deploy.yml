@@ -24,7 +24,7 @@ jobs:
 
       - name: Transfer and Load Docker Image
         run: |
-          docker save docker.io/library/nova-strapi-prod > nova-strapi-prod-ci.tar
+          docker save docker.io/library/bachelor-fe > bachelor-fe.tar
 
       - name: deploy file to server
         uses: wlixcc/SFTP-Deploy-Action@v1.2.4
