@@ -3,6 +3,7 @@ import {
   createSimulation,
   fetchSimulationByReference,
   fetchSimulationTips,
+  updateSimulationNewDay,
 } from "./simulation.api.ts";
 import { Simulation } from "./simulation.types.ts";
 import { UserSchedule } from "../../state/userSchedule.ts";
@@ -23,6 +24,20 @@ export const useCreateSimulationMutation = () => {
 
   return useMutation({
     mutationFn: () => createSimulation(),
+    onSettled: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["simulation"] });
+      queryClient.setQueryData(["simulation", data!.reference], data);
+      return data;
+    },
+  });
+};
+
+export const useSimulationNewDayMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (simulationReference: string) =>
+      updateSimulationNewDay(simulationReference),
     onSettled: (data) => {
       queryClient.invalidateQueries({ queryKey: ["simulation"] });
       queryClient.setQueryData(["simulation", data!.reference], data);

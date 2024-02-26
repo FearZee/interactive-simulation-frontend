@@ -74,7 +74,10 @@ export const Dashboard: FC<DashboardProps> = ({ simulationReference }) => {
       </Grid.Col>
       <Grid.Col span={4}>
         <Stack justify={"space-between"} h={"100%"}>
-          <TaskScheduleContainer tasks={tasks} />
+          <TaskScheduleContainer
+            tasks={tasks}
+            simulationReference={simulationReference}
+          />
           <SuggestionContainer simulationReference={simulationReference} />
         </Stack>
       </Grid.Col>

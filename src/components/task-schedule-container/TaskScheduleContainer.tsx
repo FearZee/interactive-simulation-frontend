@@ -3,20 +3,26 @@ import { useNavigate } from "react-router-dom";
 import { FC } from "react";
 import { useAtom } from "jotai";
 import { userScheduleAtom } from "../../state/userSchedule.ts";
+import { useSimulationNewDayMutation } from "../../data/simulation/simulation.queries.ts";
 
 interface TaskScheduleContainerProps {
   tasks: string[];
+  simulationReference: string;
 }
 
 export const TaskScheduleContainer: FC<TaskScheduleContainerProps> = ({
   tasks,
+  simulationReference,
 }) => {
   const navigate = useNavigate();
-  const [userSchedule] = useAtom(userScheduleAtom);
+  const [userSchedule, setUserSchedule] = useAtom(userScheduleAtom);
+  const simulationNewDayMutation = useSimulationNewDayMutation();
 
   const handleCreateNewDay = () => {
-    // TODO create new day for simulation
+    simulationNewDayMutation.mutate(simulationReference);
+    setUserSchedule(undefined);
   };
+
   return (
     <Card bg={"limeGreen.0"} mih={rem(180)}>
       <Flex

@@ -12,6 +12,7 @@ import { FC, useState } from "react";
 import { useTipsQuery } from "../../data/simulation/simulation.queries.ts";
 import { userScheduleAtom } from "../../state/userSchedule.ts";
 import { useAtom } from "jotai";
+import { randomId } from "@mantine/hooks";
 
 interface SuggestionContainerProps {
   simulationReference: string;
@@ -74,6 +75,7 @@ export const SuggestionContainer: FC<SuggestionContainerProps> = ({
         <Text>{data[filterHour].message}</Text>
         {data[filterHour].devices?.map((tip) => (
           <SuggestionCard
+            key={tip.device.reference + randomId()}
             device={tip.device}
             text={suggestionTexts[tip.device.type]?.text || tip.message}
           />

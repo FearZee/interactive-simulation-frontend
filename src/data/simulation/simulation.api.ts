@@ -22,3 +22,6 @@ export const fetchSimulationTips = (
     })
     .json<Tip>();
 };
+
+export const updateSimulationNewDay = (simulationReference: string) =>
+  api.post(`simulation/${simulationReference}/new-day`).json<Simulation>();
