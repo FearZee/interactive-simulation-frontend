@@ -8,6 +8,7 @@ type SimulationRouterParams = {
 
 export const SimulationRouter = () => {
   const { simulationReference } = useParams<SimulationRouterParams>();
+  if (!simulationReference) throw new Error("simulationReference is required");
 
   return (
     <Routes>

@@ -7,3 +7,19 @@ export interface Simulation {
   weather_reference: string;
   schedule_reference: string;
 }
+
+export interface Tip {
+  [key: string]: {
+    message: string;
+    devices: TipWithDevice[];
+  };
+}
+
+export interface TipWithDevice {
+  device: {
+    name: string;
+    reference: string;
+    type: string;
+  };
+  message: string;
+}

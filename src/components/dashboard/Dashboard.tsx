@@ -11,7 +11,7 @@ import { usePhotovoltaicQuery } from "../../data/photovoltaic/photovoltaic.queri
 import { TaskScheduleContainer } from "../task-schedule-container/TaskScheduleContainer.tsx";
 
 interface DashboardProps {
-  simulationReference?: string;
+  simulationReference: string;
 }
 
 export const Dashboard: FC<DashboardProps> = ({ simulationReference }) => {
@@ -48,8 +48,8 @@ export const Dashboard: FC<DashboardProps> = ({ simulationReference }) => {
   const tasks = [
     "Eigenverbrauch maximieren",
     "Heat factor über 0.4 halten",
-    "Elektroauto mit 7 kWh laden",
-    "Battery auf 5 kWh haben",
+    "Elektroauto mit 11 kWh laden",
+    "Battery auf mind. 5 kWh laden",
   ];
 
   return (
@@ -75,7 +75,7 @@ export const Dashboard: FC<DashboardProps> = ({ simulationReference }) => {
       <Grid.Col span={4}>
         <Stack justify={"space-between"} h={"100%"}>
           <TaskScheduleContainer tasks={tasks} />
-          <SuggestionContainer />
+          <SuggestionContainer simulationReference={simulationReference} />
         </Stack>
       </Grid.Col>
     </Grid>

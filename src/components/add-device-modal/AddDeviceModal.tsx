@@ -1,5 +1,13 @@
 import { useControlledDevicesQuery } from "../../data/schedule/schedule.queries.ts";
-import { Button, LoadingOverlay, Modal, Select } from "@mantine/core";
+import {
+  Button,
+  LoadingOverlay,
+  Modal,
+  NumberInput,
+  Select,
+  Space,
+  Text,
+} from "@mantine/core";
 import { FC, useState } from "react";
 import { BaseDevice } from "../../data/schedule/schedule.types.ts";
 import { useAtom } from "jotai";
@@ -14,12 +22,6 @@ interface AddDeviceModalProps {
 }
 
 const leftEnergyDevices = [
-  // {
-  //   reference: "b103c446-078a-4561-b3c8-85865b6b7f50",
-  //   name: "Battery",
-  //   capacity: 10.0,
-  //   current: 4.0,
-  // },
   {
     reference: "30c45c30-a16c-4f53-afed-fce423f5df4d",
     name: "Energy market",
@@ -36,15 +38,18 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
   const [selectedDevice, setSelected] = useState<
     BaseDevice | { reference: string; [key: string]: any } | undefined
   >(undefined);
-  const [duration, setDuration] = useState<number | null>(null);
+  const [wattage, setWattage] = useState<number | null>(
+    selectedDevice?.wattage,
+  );
+  const [duration, setDuration] = useState<number | null>(60);
 
-  const [, setUserSchedule] = useAtom(userScheduleAtom);
+  const [t, setUserSchedule] = useAtom(userScheduleAtom);
+
+  console.log(t);
 
   if (isLoading || !baseDevices) {
     return <LoadingOverlay />;
   }
-
-  console.log(selectedDevice);
 
   const options = baseDevices.reduce(
     (acc: { value: string; label: string }[], device) => {
@@ -67,7 +72,7 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
     if (selectedDevice) {
       setUserSchedule((schedule) => {
         const foundIndex =
-          schedule?.findIndex((item) => item.time_slot === timeSlot) || -1;
+          schedule?.findIndex((item) => item.time_slot === timeSlot) ?? -1;
 
         if (foundIndex !== -1 && schedule) {
           const newDevice = {
@@ -82,15 +87,15 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
           };
 
           return [
-            ...schedule.filter((item) => item.time_slot !== timeSlot),
+            ...(schedule ?? []).filter((item) => item.time_slot !== timeSlot),
             {
-              ...schedule[foundIndex],
-              device: [...schedule[foundIndex].device, newDevice],
+              ...schedule?.[foundIndex],
+              device: [...(schedule ?? [])[foundIndex].device, newDevice],
             },
           ];
         }
         return [
-          ...(schedule || []),
+          ...(schedule ?? []),
           {
             time_slot: timeSlot,
             device: [
@@ -121,9 +126,29 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
       return <p>Device is not available</p>;
     }
 
+    const handleWattageChange = (value: string | number) => {
+      // goal wattage is value
+      // calculate duration to reach goal
+      const goal = Number(value);
+      const duration = (goal / 1000 / (selectedDevice?.wattage / 1000)) * 60;
+      // duration can only be a number 5, 10, 15 etc
+      const roundedNum = Math.ceil(duration);
+      const remainder = roundedNum % 5;
+      const finalDuration =
+        remainder === 0 ? roundedNum : roundedNum + (5 - remainder);
+
+      setDuration(finalDuration);
+      setWattage(goal);
+    };
+
     return (
       <>
-        <p>{selectedDevice?.wattage} kWh</p>
+        <NumberInput
+          label={"Wattage"}
+          rightSection={<Text pr={"md"}>Wh</Text>}
+          value={wattage?.toString()}
+          onChange={handleWattageChange}
+        />
         <Select
           label={"Duration"}
           step={5}
@@ -131,14 +156,18 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
           value={duration?.toString()}
           onChange={(value) => setDuration(Number(value))}
         />
-        <p>
+        <Space h={"md"} />
+        <Text>
+          Usage will be:
+          <Space w={"sm"} />
           {selectedDevice &&
             duration &&
             ((selectedDevice?.wattage / 1000) * (duration / 60)).toFixed(
               3,
             )}{" "}
           kWh
-        </p>
+        </Text>
+        <Space h={"md"} />
       </>
     );
   };
