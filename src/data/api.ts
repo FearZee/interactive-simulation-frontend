@@ -7,7 +7,7 @@ export const api = ky.create({
   prefixUrl: API_BASE_URL,
   credentials: "include",
   headers: {
-    "Content-Type": "application/json",
+    "content-type": "application/json",
   },
   mode: "cors",
 });
