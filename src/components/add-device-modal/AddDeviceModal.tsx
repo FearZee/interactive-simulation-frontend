@@ -25,6 +25,8 @@ const leftEnergyDevices = [
   {
     reference: "30c45c30-a16c-4f53-afed-fce423f5df4d",
     name: "Energy market",
+    wattage: 0,
+    duration: 0,
   },
 ];
 
@@ -36,10 +38,12 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
 }) => {
   const { data: baseDevices, isLoading } = useControlledDevicesQuery();
   const [selectedDevice, setSelected] = useState<
-    BaseDevice | { reference: string; [key: string]: any } | undefined
+    | BaseDevice
+    | undefined
+    | { reference: string; wattage: number; name: string; duration: number }
   >(undefined);
   const [wattage, setWattage] = useState<number | null>(
-    selectedDevice?.wattage,
+    selectedDevice?.wattage ?? null,
   );
   const [duration, setDuration] = useState<number | null>(60);
 
@@ -87,10 +91,10 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
           };
 
           return [
-            ...(schedule ?? []).filter((item) => item.time_slot !== timeSlot),
+            ...schedule.filter((item) => item.time_slot !== timeSlot),
             {
-              ...schedule?.[foundIndex],
-              device: [...(schedule ?? [])[foundIndex].device, newDevice],
+              ...schedule[foundIndex],
+              device: [...schedule[foundIndex].device, newDevice],
             },
           ];
         }
