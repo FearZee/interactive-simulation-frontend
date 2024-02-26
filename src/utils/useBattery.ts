@@ -24,8 +24,6 @@ export const useBattery = (simulationReference?: string) => {
     return null;
   }
 
-  console.log(userSchedule);
-
   let batteryStorage = battery.capacity * battery.charge;
 
   return [...Array(24).keys()].map((timeSlot) => {
@@ -63,7 +61,7 @@ export const useBattery = (simulationReference?: string) => {
     }
 
     if (batteryDevice) {
-      batteryStorage += batteryDevice.wattage / 1000;
+      batteryStorage += leftEnergy;
 
       if (batteryStorage > battery.capacity) {
         batteryStorage = battery.capacity;

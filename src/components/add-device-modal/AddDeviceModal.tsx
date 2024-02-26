@@ -14,12 +14,12 @@ interface AddDeviceModalProps {
 }
 
 const leftEnergyDevices = [
-  {
-    reference: "b103c446-078a-4561-b3c8-85865b6b7f50",
-    name: "Battery",
-    capacity: 10.0,
-    current: 4.0,
-  },
+  // {
+  //   reference: "b103c446-078a-4561-b3c8-85865b6b7f50",
+  //   name: "Battery",
+  //   capacity: 10.0,
+  //   current: 4.0,
+  // },
   {
     reference: "30c45c30-a16c-4f53-afed-fce423f5df4d",
     name: "Energy market",
@@ -43,6 +43,8 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
   if (isLoading || !baseDevices) {
     return <LoadingOverlay />;
   }
+
+  console.log(selectedDevice);
 
   const options = baseDevices.reduce(
     (acc: { value: string; label: string }[], device) => {
@@ -71,12 +73,16 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
           const newDevice = {
             reference: uuidv4(),
             base_device_reference: selectedDevice.reference,
-            duration: duration || 60,
-            wattage: selectedDevice.wattage || leftEnergy * 1000,
+            duration: duration !== null ? duration : 60,
+            wattage:
+              selectedDevice.wattage != 0
+                ? selectedDevice.wattage
+                : leftEnergy * 1000,
             name: selectedDevice.name,
           };
+
           return [
-            ...schedule,
+            ...schedule.filter((item) => item.time_slot !== timeSlot),
             {
               ...schedule[foundIndex],
               device: [...schedule[foundIndex].device, newDevice],
@@ -91,7 +97,7 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
               {
                 reference: uuidv4(),
                 base_device_reference: selectedDevice.reference,
-                duration: duration || 60,
+                duration: duration !== null ? duration : 60,
                 wattage: selectedDevice.wattage || leftEnergy * 1000,
                 name: selectedDevice.name,
               },

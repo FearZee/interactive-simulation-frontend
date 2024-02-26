@@ -7,6 +7,10 @@ import { useAtom } from "jotai/index";
 import { userScheduleAtom } from "../state/userSchedule.ts";
 import { v4 as uuid } from "uuid";
 
+const HEAT_FACTOR_HOULY_EVOLUTION = 0.01;
+const LOWER_HEAT_FACTOR = 0.4;
+const HEATPUMP_HEAT_FACTOR = 0.2;
+
 export const useHeatFactor = (simulationReference?: string) => {
   const { data: simulation, isLoading } =
     useSimulationQuery(simulationReference);
@@ -23,7 +27,7 @@ export const useHeatFactor = (simulationReference?: string) => {
   let heatFactor = scheduleData.heat_factor;
 
   const heatFactors = Array.from({ length: 24 }, (_, timeSlot) => {
-    heatFactor -= 0.01;
+    heatFactor -= HEAT_FACTOR_HOULY_EVOLUTION;
     const heatPump = baseDevices.find(
       (baseDevice) => baseDevice.type === "heat-pump",
     );
@@ -38,10 +42,10 @@ export const useHeatFactor = (simulationReference?: string) => {
     if (heatPumpPlanned) {
       const heatPumpDevice = heatPumpPlanned.device[0];
       const { duration } = heatPumpDevice;
-      heatFactor += (0.2 * duration) / 60;
+      heatFactor += (HEATPUMP_HEAT_FACTOR * duration) / 60;
     }
 
-    if (heatFactor < 0.9) {
+    if (heatFactor < LOWER_HEAT_FACTOR) {
       setUserSchedule((schedule) => {
         const foundIndex = schedule?.findIndex(
           (item) => item.time_slot === timeSlot,
@@ -63,7 +67,6 @@ export const useHeatFactor = (simulationReference?: string) => {
         };
 
         if (foundIndex !== undefined && schedule) {
-          const updatedSchedule = schedule;
           const newDevice = heatPumpUserDevice;
           const found = schedule[foundIndex];
           if (
@@ -74,10 +77,13 @@ export const useHeatFactor = (simulationReference?: string) => {
           ) {
             return schedule;
           }
-          found.device.push(newDevice);
-          console.log(found);
-          updatedSchedule[foundIndex] = found;
-          return updatedSchedule;
+          return [
+            ...schedule.filter((item) => item.time_slot !== timeSlot),
+            {
+              ...schedule[foundIndex],
+              device: [...schedule[foundIndex].device, newDevice],
+            },
+          ];
         }
 
         return [
@@ -92,7 +98,7 @@ export const useHeatFactor = (simulationReference?: string) => {
           },
         ];
       });
-      heatFactor += 0.2;
+      heatFactor += HEATPUMP_HEAT_FACTOR;
     }
 
     return { timeSlot, heatFactor };
