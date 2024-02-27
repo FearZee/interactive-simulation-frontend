@@ -5,7 +5,7 @@ import { UserSchedule } from "../../state/userSchedule.ts";
 export const fetchSimulationByReference = (simulationReference: string) =>
   api.get(`simulation/${simulationReference}`).json<Simulation>();
 
-export const createSimulation = () => api.put(`simulation/`).json<Simulation>();
+export const createSimulation = () => api.put(`simulation`).json<Simulation>();
 
 export const simulationUsageByDay = (
   simulationReference: string,
