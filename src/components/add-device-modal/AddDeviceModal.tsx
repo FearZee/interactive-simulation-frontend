@@ -47,9 +47,7 @@ export const AddDeviceModal: FC<AddDeviceModalProps> = ({
   );
   const [duration, setDuration] = useState<number | null>(60);
 
-  const [t, setUserSchedule] = useAtom(userScheduleAtom);
-
-  console.log(t);
+  const [, setUserSchedule] = useAtom(userScheduleAtom);
 
   if (isLoading || !baseDevices) {
     return <LoadingOverlay />;

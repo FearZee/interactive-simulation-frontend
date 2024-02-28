@@ -1,7 +1,20 @@
-import { Button, Card, Flex, Select, Stack, Text } from "@mantine/core";
+import {
+  Button,
+  Card,
+  Flex,
+  NumberInput,
+  Select,
+  Space,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { IconX } from "@tabler/icons-react";
-import { FC } from "react";
-import { UserScheduleDevice } from "../../state/userSchedule.ts";
+import { FC, useState } from "react";
+import {
+  userScheduleAtom,
+  UserScheduleDevice,
+} from "../../state/userSchedule.ts";
+import { useAtom } from "jotai";
 
 interface DeviceCardProps {
   selected: UserScheduleDevice;
@@ -13,6 +26,49 @@ export const DeviceCard: FC<DeviceCardProps> = ({ selected, onClose }) => {
   const timeOptions = Array.from({ length: 12 }, (_, i) =>
     ((i + 1) * 5).toString(),
   );
+  const [wattage, setWattage] = useState<number | null>(
+    selected?.wattage ?? null,
+  );
+  const [duration, setDuration] = useState<number | null>(
+    selected.duration ?? 60,
+  );
+  const [, setUserSchedule] = useAtom(userScheduleAtom);
+
+  const handleWattageChange = (value: string | number) => {
+    // goal wattage is value
+    // calculate duration to reach goal
+    const goal = Number(value);
+    const duration = (goal / 1000 / (selected?.wattage / 1000)) * 60;
+    // duration can only be a number 5, 10, 15 etc
+    const roundedNum = Math.ceil(duration);
+    const remainder = roundedNum % 5;
+    const finalDuration =
+      remainder === 0 ? roundedNum : roundedNum + (5 - remainder);
+
+    setDuration(finalDuration);
+    setWattage(goal);
+    setUserSchedule((schedule) => {
+      return schedule?.map((item) => {
+        const foundDevice = item.device.find(
+          (device) => device.reference === selected.reference,
+        );
+        if (foundDevice) {
+          return {
+            ...item,
+            device: [
+              ...item.device.filter((d) => d.reference !== selected.reference),
+              {
+                ...foundDevice,
+                duration: finalDuration,
+                wattage: goal,
+              },
+            ],
+          };
+        }
+        return item;
+      });
+    });
+  };
 
   return (
     <Card
@@ -28,19 +84,26 @@ export const DeviceCard: FC<DeviceCardProps> = ({ selected, onClose }) => {
         </Button>
       </Flex>
       <Stack>
+        <NumberInput
+          label={"Wattage"}
+          rightSection={<Text pr={"md"}>Wh</Text>}
+          value={wattage?.toString()}
+          onChange={handleWattageChange}
+        />
         <Select
-          defaultValue={selected.duration.toString()}
-          label={"Usage time"}
+          label={"Duration"}
+          step={5}
           data={timeOptions}
-          styles={{ dropdown: { border: "1px solid #000" } }}
+          value={duration?.toString()}
+          onChange={(value) => setDuration(Number(value))}
         />
-        <Select
-          label={"Intensity"}
-          data={["low", "medium", "high"]}
-          placeholder={"Select duration"}
-        />
+        <Space h={"md"} />
         <Text>
-          Energy usage: {((selected.wattage / 1000) * selected.duration) / 60}
+          Usage will be:
+          <Space w={"sm"} />
+          {selected &&
+            duration &&
+            ((selected?.wattage / 1000) * (duration / 60)).toFixed(3)}{" "}
           kWh
         </Text>
       </Stack>

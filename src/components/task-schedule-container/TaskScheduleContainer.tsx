@@ -36,7 +36,7 @@ export const TaskScheduleContainer: FC<TaskScheduleContainerProps> = ({
           <Text fz={"md"}>Tasks for Schedule</Text>
           <Stack gap={"xs"}>
             {tasks.map((task) => (
-              <Text key={task} fz={"sm"}>
+              <Text key={task} fz={"xs"}>
                 {task}
               </Text>
             ))}
