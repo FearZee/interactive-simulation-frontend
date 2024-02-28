@@ -40,6 +40,13 @@ export const useSimulationNewDayMutation = () => {
       updateSimulationNewDay(simulationReference),
     onSettled: (data) => {
       queryClient.invalidateQueries({ queryKey: ["simulation"] });
+      queryClient.invalidateQueries({ queryKey: ["schedule"] });
+      queryClient.setQueryData(["simulation", data!.reference], data);
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["simulation"] });
+      queryClient.invalidateQueries({ queryKey: ["schedule"] });
       queryClient.setQueryData(["simulation", data!.reference], data);
       return data;
     },
