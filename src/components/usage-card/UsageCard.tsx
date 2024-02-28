@@ -1,4 +1,4 @@
-import { Card, em, rem, Text } from "@mantine/core";
+import { Card, em, rem, Skeleton, Text } from "@mantine/core";
 import { AreaChart } from "@mantine/charts";
 import { useMediaQuery } from "@mantine/hooks";
 import { FC, useLayoutEffect, useState } from "react";
@@ -38,7 +38,7 @@ export const UsageChart: FC<UsageChartProps> = ({
     };
   }, []);
 
-  if (!scheduleDevices) return null;
+  if (!scheduleDevices) return <Skeleton />;
 
   const heightFactor = isLargeHeight ? 1.35 : isSmallHeight ? 1 : 1.2;
 

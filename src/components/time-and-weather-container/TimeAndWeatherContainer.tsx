@@ -1,4 +1,4 @@
-import { Card, Flex, LoadingOverlay, rem, Stack, Text } from "@mantine/core";
+import { Card, Flex, rem, Skeleton, Stack, Text } from "@mantine/core";
 import { IconCloud, IconCloudRain, IconSun } from "@tabler/icons-react";
 import { FC } from "react";
 import { useWeatherQuery } from "../../data/weather/weather.queries.ts";
@@ -32,7 +32,7 @@ export const TimeAndWeatherInfo: FC<TimeAndWeatherInfoProps> = ({
   const t = dayOfYearToDate(day);
 
   if (isLoading || !data) {
-    return <LoadingOverlay />;
+    return <Skeleton height={rem(180)} />;
   }
 
   return (
