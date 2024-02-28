@@ -38,9 +38,12 @@ export const UsageChart: FC<UsageChartProps> = ({
     };
   }, []);
 
-  if (!scheduleDevices) return <Skeleton />;
-
   const heightFactor = isLargeHeight ? 1.35 : isSmallHeight ? 1 : 1.2;
+
+  if (!scheduleDevices)
+    return (
+      <Skeleton height={rem(Math.max(300, (height * heightFactor) / 3 - 16))} />
+    );
 
   const data = Object.keys(scheduleComplete).map((key) => {
     let usage = 0;
